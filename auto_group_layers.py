@@ -56,23 +56,12 @@ def get_layer_workspace(geoserver_username, geoserver_password, geoserver_server
     return workspace
 
 def get_layers(geoserver_username, geoserver_password, geoserver_server, geoserver_ws):
-    curl_string = f"curl -v -u \"{geoserver_username}\":\"{geoserver_password}\" -GET \"{geoserver_server}/workspaces/{geoserver_ws}/layers.json\""
-
-    # http: // www.yourgeoserver.com / geoserver / myws / ows?SERVICE = WFS & REQUEST = GetCapabilities
-    # curl_string = "curl -v -u "+geoserver_username+":"+geoserver_password+" -GET \""+geoserver_server+"/geoserver/rest/layers/"+layername+".json\""
-    # curl_string = f"curl -v -u {geoserver_username}:{geoserver_password} -GET \"{geoserver_server}/geoserver/{geoserver_ws}/ows?SERVICE=WFS&REQUEST=GetCapabilities\""
-    # curl_string = f"curl -v -u \"{geoserver_username}\":\"{geoserver_password}\" -GET \"{geoserver_server}/geoserver/rest/workspaces/{geoserver_ws}/layer.json\""
     curl_string = f"curl -v -u \"{geoserver_username}\":\"{geoserver_password}\" -X GET \"{geoserver_server}/layers.json\" -H  \"accept: text/html\" -H  \"content-type: application/json\""
     readout = subprocess.Popen(curl_string, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1).communicate()[0]
     layers_in_ws = []
     readout = json.loads(readout)['layers']['layer']
     for l in readout:
         layername=l['name']
-        # print(layername)
-        # workspace = get_layer_workspace(geoserver_username, geoserver_password, geoserver_server, layername)
-        # print(layername, workspace)
-        # if workspace == geoserver_ws:
-        #     print("BIMGO!!!!!!!!!!")
         layers_in_ws.append(layername)
     return layers_in_ws
 
@@ -146,24 +135,22 @@ if __name__ == '__main__':
     if not args.geoserver.find("geoserver/rest")>0:
         args.geoserver = args.geoserver+"/geoserver/rest/"
 
-    # layerslist = get_layers(args.gs_user,args.gs_passw, args.geoserver, args.workspace)
-    # real_names_list = []
-    # with open("c:\\temp\out_test_group.txt","w") as g:
-    #     for i in layerslist:
-    #         similarname = []
-    #         print(len(layerslist))
-    #         for f in layerslist:
-    #             similarity = difflib.SequenceMatcher(None, i, f).ratio()
-    #             if similarity>0.9:
-    #                 similarname.append(f)
-    #                 layerslist.remove(f)
-    #         real_names_list.append(list(set(similarname)))
-    #             # g.write("{} , {}, {}".format(f,i,str(similarity)))
-    #     g.write(str(real_names_list))
+    layerslist = get_layers(args.gs_user,args.gs_passw, args.geoserver, args.workspace)
+    real_names_list = []
+    with open("c:\\temp\out_test_group.txt","w") as g:
+        for i in layerslist:
+            similarname = []
+            print(len(layerslist))
+            for f in layerslist:
+                similarity = difflib.SequenceMatcher(None, i, f).ratio()
+                if similarity>0.9:
+                    similarname.append(f)
+                    layerslist.remove(f)
+            real_names_list.append(list(set(similarname)))
+                # g.write("{} , {}, {}".format(f,i,str(similarity)))
+        g.write(str(real_names_list))
 
-    grouplist = [{'bhutan_landusemap_amochhu_t32','bhutan_landusemap_amochhu_t33','bhutan_landusemap_amochhu_t34'},{'TSX.20120131', 'TSX.20130319'},{'Belize'}, {'Grenada'}, {'StLucia'},{'Nepal.TDX-SRTM.shd', 'Nepal.TDX-SRTM.hgt_shd_2000m'}, {'Nepal_LandUseMap_Koshi_m13', 'Nepal_LandUseMap_Koshi_m35', 'Nepal_LandUseMap_Koshi_m42', 'Nepal_LandUseMap_Koshi_m31', 'Nepal_LandUseMap_Koshi_m15', 'Nepal_LandUseMap_Koshi_m44', 'Nepal_LandUseMap_Koshi_m33', 'Nepal_LandUseMap_Koshi_m11', 'Nepal_LandUseMap_Koshi_m24', 'Nepal_LandUseMap_Koshi_m22'}, {'Nepal_LandUseMap_Koshi_m21', 'Nepal_LandUseMap_Koshi_m43', 'Nepal_LandUseMap_Koshi_m34', 'Nepal_LandUseMap_Koshi_m25', 'Nepal_LandUseMap_Koshi_m12'}, {'Nepal_LandUseMap_Koshi_m32', 'Nepal_LandUseMap_Koshi_m14', 'Nepal_LandUseMap_Koshi_m45'}]
-
-
+    # grouplist = [{'bhutan_landusemap_amochhu_t32','bhutan_landusemap_amochhu_t33','bhutan_landusemap_amochhu_t34'},{'TSX.20120131', 'TSX.20130319'},{'Belize'}, {'Grenada'}, {'StLucia'},{'Nepal.TDX-SRTM.shd', 'Nepal.TDX-SRTM.hgt_shd_2000m'}, {'Nepal_LandUseMap_Koshi_m13', 'Nepal_LandUseMap_Koshi_m35', 'Nepal_LandUseMap_Koshi_m42', 'Nepal_LandUseMap_Koshi_m31', 'Nepal_LandUseMap_Koshi_m15', 'Nepal_LandUseMap_Koshi_m44', 'Nepal_LandUseMap_Koshi_m33', 'Nepal_LandUseMap_Koshi_m11', 'Nepal_LandUseMap_Koshi_m24', 'Nepal_LandUseMap_Koshi_m22'}, {'Nepal_LandUseMap_Koshi_m21', 'Nepal_LandUseMap_Koshi_m43', 'Nepal_LandUseMap_Koshi_m34', 'Nepal_LandUseMap_Koshi_m25', 'Nepal_LandUseMap_Koshi_m12'}, {'Nepal_LandUseMap_Koshi_m32', 'Nepal_LandUseMap_Koshi_m14', 'Nepal_LandUseMap_Koshi_m45'}]
 
     cat = Catalog(args.geoserver,args.gs_user, args.gs_passw)
     # workspace = cat.get_workspace(args.workspace)
@@ -183,10 +170,6 @@ if __name__ == '__main__':
                 styles.append(style.name)
             styles_in_ws.append(styles)
 
-    print(layers_in_ws)
-    # print(styles_in_ws)
-    # print(rlayers_in_ws)
-    # layers_in_ws = [['bhutan_landusemap_amochhu_t42','bhutan_landusemap_amochhu_t33','bhutan_landusemap_amochhu_t34'],['TSX.20120131', 'TSX.20130319']]
     i=0
     for lg in layers_in_ws:
         match_strg = lg[0]
